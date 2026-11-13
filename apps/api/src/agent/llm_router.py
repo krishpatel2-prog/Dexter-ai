@@ -45,7 +45,19 @@ def get_llm_router() -> Router:
             "rpm": 15,
         })
         
-    # 2. Cerebras (Secondary ultrafast LPU provider, 1M tokens/day)
+    # 2. Gemini (Immediate high-capacity fallback with 1M TPM and large context)
+    if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY.strip():
+        all_possible_models.append({
+            "model_name": "gemini-flash",
+            "litellm_params": {
+                "model": "gemini/gemini-2.5-flash",
+                "api_key": settings.GEMINI_API_KEY.strip(),
+            },
+            "tpm": 1000 * 1000,
+            "rpm": 15,
+        })
+
+    # 3. Cerebras (Optional fast LPU provider, only if enabled)
     if settings.CEREBRAS_API_KEY and settings.CEREBRAS_API_KEY.strip():
         all_possible_models.append({
             "model_name": "cerebras-gpt-oss-120b",
@@ -56,28 +68,6 @@ def get_llm_router() -> Router:
             },
             "tpm": 30 * 1000,
             "rpm": 30,
-        })
-        all_possible_models.append({
-            "model_name": "cerebras-gemma4-31b",
-            "litellm_params": {
-                "model": "openai/gemma-4-31b",
-                "api_base": "https://api.cerebras.ai/v1",
-                "api_key": settings.CEREBRAS_API_KEY.strip(),
-            },
-            "tpm": 30 * 1000,
-            "rpm": 30,
-        })
-        
-    # 3. Gemini (Reliable fallback with large context)
-    if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY.strip():
-        all_possible_models.append({
-            "model_name": "gemini-flash",
-            "litellm_params": {
-                "model": "gemini/gemini-flash-latest",
-                "api_key": settings.GEMINI_API_KEY.strip(),
-            },
-            "tpm": 15 * 1000,
-            "rpm": 15,
         })
         
     # 4. GitHub Models (GPT-4o-mini, 150 RPD free)
@@ -140,8 +130,8 @@ def get_llm_router() -> Router:
     _router = Router(
         model_list=all_possible_models,
         fallbacks=fallbacks,
-        num_retries=0,
-        timeout=25.0,
+        num_retries=2,
+        timeout=30.0,
         retry_after=0,
     )
     return _router
