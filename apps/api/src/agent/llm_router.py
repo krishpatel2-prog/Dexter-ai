@@ -82,12 +82,12 @@ def get_llm_router() -> Router:
             "rpm": 15,
         })
 
-    # 5. OpenRouter
+    # 5. OpenRouter (Free tier model)
     if settings.OPENROUTER_API_KEY and settings.OPENROUTER_API_KEY.strip():
         all_possible_models.append({
             "model_name": "openrouter-free",
             "litellm_params": {
-                "model": "openrouter/auto",
+                "model": "openrouter/nvidia/nemotron-3.5-lightning:free",
                 "api_key": settings.OPENROUTER_API_KEY.strip(),
             },
             "rpm": 20,
