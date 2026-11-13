@@ -66,7 +66,7 @@ async def _stream_graph(graph_input: Any, config: dict, thread_id: str) -> Async
                 
                     async def insert_step(step, exec_id):
                         settings = get_settings()
-                        async with httpx.AsyncClient() as client:
+                        async with httpx.AsyncClient(timeout=2.0) as client:
                             headers = {
                                 "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
                                 "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
@@ -123,7 +123,7 @@ async def _stream_graph(graph_input: Any, config: dict, thread_id: str) -> Async
         
         async def finalize_execution(exec_id, state):
             settings = get_settings()
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=2.0) as client:
                 headers = {
                     "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
                     "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
@@ -179,7 +179,7 @@ async def event_generator(request: ChatRequest) -> AsyncGenerator[str, None]:
             settings = get_settings()
             dummy_user_id = "00000000-0000-0000-0000-000000000000"
             
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=2.0) as client:
                 headers = {
                     "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
                     "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",

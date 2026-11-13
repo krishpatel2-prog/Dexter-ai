@@ -84,7 +84,7 @@ async def load_memory(state: AgentState) -> dict[str, Any]:
     facts = []
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=2.0) as client:
             headers = {
                 "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
                 "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
@@ -108,7 +108,7 @@ async def load_memory(state: AgentState) -> dict[str, Any]:
             if resp_fact.status_code == 200:
                 facts = resp_fact.json()
     except Exception as e:
-        logger.error(f"Failed to load memory: {e}")
+        logger.warning(f"Failed to load memory: {e}")
 
     # Combine facts and preferences into the state. 
     # For now, we'll store both in user_preferences to provide context to the planner.
@@ -710,7 +710,7 @@ async def save_memory(state: AgentState) -> dict[str, Any]:
 
                 fact_text = f"{contact_name}'s email address is {recipient}"
 
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(timeout=2.0) as client:
                     headers = {
                         "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
                         "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
