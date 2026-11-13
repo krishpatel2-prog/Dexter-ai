@@ -15,12 +15,21 @@ def get_llm_router() -> Router:
     
     all_possible_models = []
     
-    # 1. Groq (Primary for ultrafast low-latency LLaMA 3.3 70B inference)
+    # 1. Groq (Primary for ultrafast low-latency inference)
     if settings.GROQ_API_KEY and settings.GROQ_API_KEY.strip():
         all_possible_models.append({
             "model_name": "groq-llama3-70b",
             "litellm_params": {
-                "model": "groq/llama-3.3-70b-versatile",
+                "model": "groq/openai/gpt-oss-120b",
+                "api_key": settings.GROQ_API_KEY.strip(),
+            },
+            "tpm": 6000,
+            "rpm": 30,
+        })
+        all_possible_models.append({
+            "model_name": "groq-gpt-oss-20b",
+            "litellm_params": {
+                "model": "groq/openai/gpt-oss-20b",
                 "api_key": settings.GROQ_API_KEY.strip(),
             },
             "tpm": 6000,
@@ -29,7 +38,7 @@ def get_llm_router() -> Router:
         all_possible_models.append({
             "model_name": "groq-qwen-vision",
             "litellm_params": {
-                "model": "groq/qwen/qwen3.6-27b",
+                "model": "groq/qwen/qwen3.8-27b",
                 "api_key": settings.GROQ_API_KEY.strip(),
             },
             "tpm": 6000,
