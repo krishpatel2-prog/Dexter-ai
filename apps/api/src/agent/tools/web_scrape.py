@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-from crawl4ai import AsyncWebCrawler
+import httpx
+from bs4 import BeautifulSoup
 from src.agent.tools.base import BaseTool
 
 class WebScrapeInput(BaseModel):
@@ -30,17 +31,26 @@ class WebScrapeTool(BaseTool):
         except Exception as e:
             if "forbidden" in str(e):
                 raise
-            # If resolution fails, let the crawler handle the failure natively.
+            # If resolution fails, let the client handle the error.
 
-        async with AsyncWebCrawler(verbose=False) as crawler:
-            result = await crawler.arun(url=url)
-            
-            if not result.success:
-                raise Exception(f"Failed to scrape {url}: {result.error_message}")
-                
-            content = result.markdown
-            
-            if len(content) > 15000:
-                content = content[:15000] + "\n...[Content truncated for length]..."
-                
-            return f"Source: {url}\n\n{content}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        try:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+                resp = await client.get(url, headers=headers)
+                resp.raise_for_status()
+                html = resp.text
+        except Exception as e:
+            raise Exception(f"Failed to scrape {url}: {str(e)}")
+
+        soup = BeautifulSoup(html, "html.parser")
+        for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
+            tag.decompose()
+
+        content = soup.get_text(separator="\n", strip=True)
+        if len(content) > 15000:
+            content = content[:15000] + "\n...[Content truncated for length]..."
+
+        return f"Source: {url}\n\n{content}"
+
